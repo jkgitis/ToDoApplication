@@ -9,11 +9,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.todoapplication.data.AuthRepository
+import com.example.todoapplication.data.local.SharedPrefManager
 import com.example.todoapplication.presentation.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -21,6 +23,8 @@ import com.example.todoapplication.presentation.navigation.Screen
 fun HomeScreen(navController: NavController) {
 
     val authRepository = remember { AuthRepository() }
+    val context = LocalContext.current
+    val sharedPref = remember { SharedPrefManager(context) }
 
     val dummyTaskList = listOf(
         "Buy groceries",
@@ -45,6 +49,7 @@ fun HomeScreen(navController: NavController) {
                 actions = {
                     TextButton(onClick = {
                         authRepository.logout()
+                        sharedPref.clearLoginState()
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }

@@ -7,11 +7,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.todoapplication.data.AuthRepository
+import com.example.todoapplication.data.local.SharedPrefManager
 import com.example.todoapplication.presentation.navigation.Screen
 import kotlinx.coroutines.launch
 
@@ -19,6 +21,8 @@ import kotlinx.coroutines.launch
 fun RegisterScreen(navController: NavController) {
 
     val authRepository = remember { AuthRepository() }
+    val context = LocalContext.current
+    val sharedPref = remember { SharedPrefManager(context) }
     val scope = rememberCoroutineScope()
 
     var email by remember { mutableStateOf("") }
@@ -68,6 +72,7 @@ fun RegisterScreen(navController: NavController) {
                         val result = authRepository.register(email, password)
                         isLoading = false
                         result.onSuccess {
+                            sharedPref.saveLoginState(true)
                             navController.navigate(Screen.Home.route) {
                                 popUpTo(Screen.Register.route) { inclusive = true }
                             }
