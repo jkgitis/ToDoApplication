@@ -5,35 +5,27 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.todoapplication.data.local.TaskDatabase
 import com.example.todoapplication.data.local.TaskEntity
-import com.example.todoapplication.data.local.TaskRepository
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 class TaskViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: TaskRepository
+    private val dao = TaskDatabase.getDatabase(application).taskDao()
 
-    val allTasks: StateFlow<List<TaskEntity>>
+    // Fetch all tasks
+    val allTasks: Flow<List<TaskEntity>> = dao.getAllTasks()
 
-    init {
-        val dao = TaskDatabase.getDatabase(application).taskDao()
-        repository = TaskRepository(dao)
-
-        allTasks = repository.allTasks
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    // Insert task
+    fun addTask(task: TaskEntity) {
+        viewModelScope.launch {
+            dao.insertTask(task)
+        }
     }
 
-    fun addTask(task: TaskEntity) = viewModelScope.launch {
-        repository.insert(task)
-    }
-
-    fun updateTask(task: TaskEntity) = viewModelScope.launch {
-        repository.update(task)
-    }
-
-    fun deleteTask(task: TaskEntity) = viewModelScope.launch {
-        repository.delete(task)
+    // Delete task
+    fun deleteTask(task: TaskEntity) {
+        viewModelScope.launch {
+            dao.deleteTask(task)
+        }
     }
 }

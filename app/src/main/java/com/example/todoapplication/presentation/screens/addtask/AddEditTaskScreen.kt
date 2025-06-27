@@ -1,11 +1,10 @@
 package com.example.todoapplication.presentation.screens.addtask
 
 import android.app.Application
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -17,8 +16,10 @@ import com.example.todoapplication.presentation.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddEditTaskScreen(navController: NavController) {
-
+fun AddEditTaskScreen(
+    navController: NavController,
+    taskId: Int? = null
+) {
     val context = LocalContext.current
     val taskViewModel = viewModel<TaskViewModel>(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(context.applicationContext as Application)
@@ -36,16 +37,13 @@ fun AddEditTaskScreen(navController: NavController) {
                 )
             )
         },
-        containerColor = Color.White
+        containerColor = Color(0xFFF6F6F6)
     ) { paddingValues ->
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp)
-                .background(Color.White),
-            verticalArrangement = Arrangement.Top
         ) {
             OutlinedTextField(
                 value = title,
@@ -53,29 +51,34 @@ fun AddEditTaskScreen(navController: NavController) {
                 label = { Text("Title") },
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth()
             )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             Button(
                 onClick = {
-                    if (title.isNotEmpty()) {
-                        taskViewModel.addTask(
-                            TaskEntity(title = title, description = description)
+                    if (title.isNotEmpty() && description.isNotEmpty()) {
+                        val task = TaskEntity(
+                            title = title,
+                            description = description
                         )
+                        taskViewModel.addTask(task)
                         navController.popBackStack()
                     }
                 },
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6200EE),
                     contentColor = Color.White
-                ),
-                modifier = Modifier.fillMaxWidth()
+                )
             ) {
                 Text("Save Task")
             }

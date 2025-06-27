@@ -26,7 +26,7 @@ fun HomeScreen(navController: NavController) {
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(context.applicationContext as Application)
     )
 
-    val taskList by taskViewModel.allTasks.collectAsState()
+    val taskList by taskViewModel.allTasks.collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {

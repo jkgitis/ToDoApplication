@@ -10,9 +10,9 @@ class TaskRepository(private val dao: TaskDao) {
         dao.insertTask(task)
     }
 
-    suspend fun update(task: TaskEntity) {
-        dao.updateTask(task)
-    }
+//    suspend fun update(task: TaskEntity) {
+//        dao.updateTask(task)
+//    }  to complete this TODO: add correct code
 
     suspend fun delete(task: TaskEntity) {
         dao.deleteTask(task)
