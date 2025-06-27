@@ -1,55 +1,42 @@
 package com.example.todoapplication.presentation.screens.home
 
-import androidx.compose.foundation.background
+import android.app.Application
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.todoapplication.data.AuthRepository
-import com.example.todoapplication.data.local.SharedPrefManager
+import com.example.todoapplication.data.local.TaskEntity
 import com.example.todoapplication.presentation.navigation.Screen
+import com.example.todoapplication.presentation.viewmodel.TaskViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
-
-    val authRepository = remember { AuthRepository() }
     val context = LocalContext.current
-    val sharedPref = remember { SharedPrefManager(context) }
-
-    val dummyTaskList = listOf(
-        "Buy groceries",
-        "Finish Android project",
-        "Call mom",
-        "Workout session",
-        "Read a book"
+    val taskViewModel = viewModel<TaskViewModel>(
+        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(context.applicationContext as Application)
     )
+
+    val taskList by taskViewModel.allTasks.collectAsState()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "My Tasks",
-                        color = Color.White
-                    )
-                },
+                title = { Text("My Tasks", color = Color.White) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color(0xFF6200EE)
                 ),
                 actions = {
                     TextButton(onClick = {
-                        authRepository.logout()
-                        sharedPref.clearLoginState()
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
@@ -61,9 +48,7 @@ fun HomeScreen(navController: NavController) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    navController.navigate(Screen.AddEditTask.route)
-                },
+                onClick = { navController.navigate(Screen.AddEditTask.route) },
                 containerColor = Color(0xFF6200EE)
             ) {
                 Text("+", color = Color.White)
@@ -77,36 +62,55 @@ fun HomeScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(8.dp)
         ) {
-            items(dummyTaskList) { task ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text(
-                            text = task,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = Color.Black
-                        )
-                        Text(
-                            text = "Task Description...",
-                            color = Color.Gray
-                        )
+            items(taskList) { task ->
+                TaskItem(
+                    task = task,
+                    onDelete = { taskViewModel.deleteTask(task) },
+                    onEdit = {
+                        navController.navigate(Screen.AddEditTask.route + "?taskId=${task.id}")
                     }
-                }
+                )
             }
         }
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun HomeScreenPreview() {
-    HomeScreen(navController = rememberNavController())
+fun TaskItem(
+    task: TaskEntity,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+            .clickable { onEdit() },
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = task.title,
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = task.description,
+                color = Color.Gray
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = onDelete,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFD32F2F),
+                    contentColor = Color.White
+                )
+            ) {
+                Text("Delete")
+            }
+        }
+    }
 }
