@@ -11,18 +11,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.todoapplication.data.AuthRepository
 import com.example.todoapplication.presentation.navigation.Screen
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(navController: NavController) {
 
+    val authRepository = remember { AuthRepository() }
+    val scope = rememberCoroutineScope()
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFFFFFF)),
+            .background(Color.White),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -54,17 +62,28 @@ fun RegisterScreen(navController: NavController) {
 
             Button(
                 onClick = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Register.route) { inclusive = true }
+                    isLoading = true
+                    errorMessage = null
+                    scope.launch {
+                        val result = authRepository.register(email, password)
+                        isLoading = false
+                        result.onSuccess {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Register.route) { inclusive = true }
+                            }
+                        }.onFailure {
+                            errorMessage = it.message
+                        }
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF6200EE),
                     contentColor = Color.White
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
             ) {
-                Text("Register")
+                Text(if (isLoading) "Registering..." else "Register")
             }
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -75,6 +94,11 @@ fun RegisterScreen(navController: NavController) {
                     "Already have an account? Login",
                     color = Color(0xFF6200EE)
                 )
+            }
+
+            errorMessage?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = it, color = Color.Red)
             }
         }
     }

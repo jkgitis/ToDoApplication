@@ -13,11 +13,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.todoapplication.data.AuthRepository
 import com.example.todoapplication.presentation.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
+
+    val authRepository = remember { AuthRepository() }
 
     val dummyTaskList = listOf(
         "Buy groceries",
@@ -41,6 +44,7 @@ fun HomeScreen(navController: NavController) {
                 ),
                 actions = {
                     TextButton(onClick = {
+                        authRepository.logout()
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
