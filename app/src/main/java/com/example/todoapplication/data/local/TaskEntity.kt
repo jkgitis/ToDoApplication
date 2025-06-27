@@ -5,8 +5,9 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "tasks")
 data class TaskEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,   // Auto-generated ID for Room
+    @PrimaryKey
+    val id: String = "",   // Unique ID (match with Firestore ID if needed)
     val title: String,
-    val description: String
+    val description: String,
+    val userId: String     // Critical for user-specific tasks
 )

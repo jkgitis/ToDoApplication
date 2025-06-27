@@ -1,51 +1,59 @@
 package com.example.todoapplication.data.remote
 
-import android.util.Log
 import com.example.todoapplication.data.local.TaskEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import java.util.UUID
+import java.util.*
 
 class FirestoreRepository {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    private val userId: String
-        get() = auth.currentUser?.uid ?: "unknown"
+    //  Get Current User ID
+    private fun getUserId(): String {
+        return auth.currentUser?.uid ?: ""
+    }
 
-    // 🔥 Function to Add Task to Firestore
+    //  Add task to Firestore (if id empty, generate UUID)
     fun addTaskToFirestore(task: TaskEntity) {
-        val taskId = UUID.randomUUID().toString()
+        val userId = getUserId()
 
-        val taskMap = hashMapOf(
-            "id" to taskId,
-            "title" to task.title,
-            "description" to task.description,
-            "userId" to userId
-        )
+        val taskId = if (task.id.isEmpty()) {
+            UUID.randomUUID().toString()
+        } else {
+            task.id
+        }
 
-        db.collection("tasks")
+        val taskWithId = task.copy(id = taskId, userId = userId)
+
+        db.collection("users")
+            .document(userId)
+            .collection("tasks")
             .document(taskId)
-            .set(taskMap)
+            .set(taskWithId)
             .addOnSuccessListener {
-                Log.d("Firestore", "Task added to Firestore")
+                // Optional: Log success or handle UI update
             }
-            .addOnFailureListener { e ->
-                Log.e("Firestore", "Error adding task", e)
+            .addOnFailureListener {
+                // Optional: Log failure
             }
     }
 
-    // 🔥 Function to Delete Task from Firestore
+    // Delete task from Firestore using taskId
     fun deleteTaskFromFirestore(taskId: String) {
-        db.collection("tasks")
+        val userId = getUserId()
+
+        db.collection("users")
+            .document(userId)
+            .collection("tasks")
             .document(taskId)
             .delete()
             .addOnSuccessListener {
-                Log.d("Firestore", "Task deleted from Firestore")
+                // Optional: Handle success
             }
-            .addOnFailureListener { e ->
-                Log.e("Firestore", "Error deleting task", e)
+            .addOnFailureListener {
+                // Optional: Handle error
             }
     }
 }

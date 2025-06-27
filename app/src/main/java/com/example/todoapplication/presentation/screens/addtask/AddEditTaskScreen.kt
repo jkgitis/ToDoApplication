@@ -13,12 +13,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.todoapplication.data.local.TaskEntity
 import com.example.todoapplication.presentation.viewmodel.TaskViewModel
+import com.google.firebase.auth.FirebaseAuth
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditTaskScreen(
-    navController: NavController,
-    taskId: Int? = null
+    navController: NavController
 ) {
     val context = LocalContext.current
     val taskViewModel = viewModel<TaskViewModel>(
@@ -66,7 +67,10 @@ fun AddEditTaskScreen(
             Button(
                 onClick = {
                     if (title.isNotEmpty() && description.isNotEmpty()) {
+                        val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
                         val task = TaskEntity(
+                            id = UUID.randomUUID().toString(),   // ✅ Generate Unique ID
+                            userId = userId,
                             title = title,
                             description = description
                         )

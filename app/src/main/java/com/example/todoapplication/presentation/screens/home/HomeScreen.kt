@@ -17,6 +17,7 @@ import androidx.navigation.NavController
 import com.example.todoapplication.data.local.TaskEntity
 import com.example.todoapplication.presentation.navigation.Screen
 import com.example.todoapplication.presentation.viewmodel.TaskViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +27,7 @@ fun HomeScreen(navController: NavController) {
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(context.applicationContext as Application)
     )
 
+    // Observe tasks
     val taskList by taskViewModel.allTasks.collectAsState(initial = emptyList())
 
     Scaffold(
@@ -36,11 +38,14 @@ fun HomeScreen(navController: NavController) {
                     containerColor = Color(0xFF6200EE)
                 ),
                 actions = {
-                    TextButton(onClick = {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
+                    TextButton(
+                        onClick = {
+                            FirebaseAuth.getInstance().signOut()
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(Screen.Home.route) { inclusive = true }
+                            }
                         }
-                    }) {
+                    ) {
                         Text("Logout", color = Color.White)
                     }
                 }
@@ -48,7 +53,9 @@ fun HomeScreen(navController: NavController) {
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate(Screen.AddEditTask.route) },
+                onClick = {
+                    navController.navigate(Screen.AddEditTask.route)
+                },
                 containerColor = Color(0xFF6200EE)
             ) {
                 Text("+", color = Color.White)
@@ -56,20 +63,31 @@ fun HomeScreen(navController: NavController) {
         },
         containerColor = Color(0xFFF6F6F6)
     ) { paddingValues ->
-        LazyColumn(
-            contentPadding = paddingValues,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(8.dp)
-        ) {
-            items(taskList) { task ->
-                TaskItem(
-                    task = task,
-                    onDelete = { taskViewModel.deleteTask(task) },
-                    onEdit = {
-                        navController.navigate(Screen.AddEditTask.route + "?taskId=${task.id}")
-                    }
-                )
+        if (taskList.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text(text = "No tasks yet!", color = Color.Gray)
+            }
+        } else {
+            LazyColumn(
+                contentPadding = paddingValues,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(8.dp)
+            ) {
+                items(taskList) { task ->
+                    TaskItem(
+                        task = task,
+                        onDelete = { taskViewModel.deleteTask(task) },
+                        onEdit = {
+                            navController.navigate(Screen.AddEditTask.route + "?taskId=${task.id}")
+                        }
+                    )
+                }
             }
         }
     }

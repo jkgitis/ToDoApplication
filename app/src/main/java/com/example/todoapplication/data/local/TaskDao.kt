@@ -1,6 +1,10 @@
 package com.example.todoapplication.data.local
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -12,6 +16,6 @@ interface TaskDao {
     @Delete
     suspend fun deleteTask(task: TaskEntity)
 
-    @Query("SELECT * FROM tasks ORDER BY id DESC")
-    fun getAllTasks(): Flow<List<TaskEntity>>
+    @Query("SELECT * FROM tasks WHERE userId = :userId")
+    fun getAllTasks(userId: String): Flow<List<TaskEntity>>
 }
